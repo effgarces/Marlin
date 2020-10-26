@@ -662,8 +662,8 @@
 #define PID_K1 0.95      // Smoothing factor within any PID loop
 
 #if ENABLED(PIDTEMP)
-  //#define PID_EDIT_MENU         // Add PID editing to the "Advanced Settings" menu. (~700 bytes of PROGMEM)
-  //#define PID_AUTOTUNE_MENU     // Add PID auto-tuning to the "Advanced Settings" menu. (~250 bytes of PROGMEM)
+  #define PID_EDIT_MENU         // Add PID editing to the "Advanced Settings" menu. (~700 bytes of PROGMEM)
+  #define PID_AUTOTUNE_MENU     // Add PID auto-tuning to the "Advanced Settings" menu. (~250 bytes of PROGMEM)
   //#define PID_PARAMS_PER_HOTEND // Uses separate PID parameters for each extruder (useful for mismatched extruders)
                                   // Set/get with gcode: M301 E[extruder number, 0-2]
 
@@ -996,7 +996,7 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
-//#define CLASSIC_JERK
+#define CLASSIC_JERK
 #if ENABLED(CLASSIC_JERK)
   #define DEFAULT_XJERK 10.0
   #define DEFAULT_YJERK 10.0
@@ -1205,7 +1205,7 @@
 #if defined(XY2_V6_255_NO_TITAN_TMC) || defined(XY2_V6_255_TITAN_TMC) || defined(XY2_V6_255_BMG_TMC)
 #define NOZZLE_TO_PROBE_OFFSET { -50, -10, -2 }
 #else
-#define NOZZLE_TO_PROBE_OFFSET { -35, -0, 0 }
+#define NOZZLE_TO_PROBE_OFFSET { -49, -6, 0 }
 #endif
 
 // Most probes should stay away from the edges of the bed, but
