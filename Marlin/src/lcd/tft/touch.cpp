@@ -119,9 +119,8 @@ void Touch::idle() {
           NOMORE(y, current_control->y + current_control->height);
           touch(current_control);
         }
-        else {
-          current_control = NULL;
-        }
+        else
+          current_control = nullptr;
       }
       else {
         for (i = 0; i < controls_count; i++) {
@@ -133,7 +132,7 @@ void Touch::idle() {
         }
       }
 
-      if (current_control == NULL)
+      if (!current_control)
         touch_time = last_touch_ms;
     }
     x = _x;
@@ -141,7 +140,7 @@ void Touch::idle() {
   }
   else {
     x = y = 0;
-    current_control = NULL;
+    current_control = nullptr;
     touch_time = 0;
     touch_control_type = NONE;
     time_to_hold = 0;
@@ -189,12 +188,12 @@ void Touch::touch(touch_control_t *control) {
             }
 
             if (calibration_state == CALIBRATION_SUCCESS) {
-              SERIAL_ECHOLN("Touch screen calibration completed");
+              SERIAL_ECHOLNPGM("Touch screen calibration completed");
               SERIAL_ECHOLNPAIR("TOUCH_CALIBRATION_X ", calibration.x);
               SERIAL_ECHOLNPAIR("TOUCH_CALIBRATION_Y ", calibration.y);
               SERIAL_ECHOLNPAIR("TOUCH_OFFSET_X ", calibration.offset_x);
               SERIAL_ECHOLNPAIR("TOUCH_OFFSET_Y ", calibration.offset_y);
-              SERIAL_ECHO("TOUCH_ORIENTATION "); if (calibration.orientation == TOUCH_LANDSCAPE) SERIAL_ECHOLN("TOUCH_LANDSCAPE"); else SERIAL_ECHOLN("TOUCH_PORTRAIT");
+              SERIAL_ECHOPGM("TOUCH_ORIENTATION "); if (calibration.orientation == TOUCH_LANDSCAPE) SERIAL_ECHOLNPGM("TOUCH_LANDSCAPE"); else SERIAL_ECHOLNPGM("TOUCH_PORTRAIT");
             }
             break;
           default: break;
