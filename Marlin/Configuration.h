@@ -1321,9 +1321,9 @@
 
 // For direct drive extruder v9 set to true, for geared extruder set to false.
 #if defined(WITH_TITAN) || defined(WITH_BMG)
-  #define INVERT_E0_DIR true
-#else
   #define INVERT_E0_DIR false
+#else
+  #define INVERT_E0_DIR true
 #endif
 #define INVERT_E1_DIR false
 #define INVERT_E2_DIR false
