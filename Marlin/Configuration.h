@@ -52,7 +52,7 @@
   #define X_BED_SIZE 330
   #define Y_BED_SIZE 330
   #define Z_MAX_POS 400
-  #define CUSTOM_MACHINE_NAME "Tronxy X5SA V6 330 Titan TMC"
+  #define CUSTOM_MACHINE_NAME "Tronxy X5SA PRO"
   #define COREXY
 
 #elif V6_330_TITAN_NO_TMC
@@ -930,7 +930,7 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2...]]
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 160, 160, 800, 764 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 160, 160, 800, 415 }
 
 /**
  * Default Max Feed Rate (mm/s)
@@ -1018,7 +1018,7 @@
  *
  * See https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained
  */
-// #define S_CURVE_ACCELERATION
+#define S_CURVE_ACCELERATION
 
 //===========================================================================
 //============================= Z Probe Options =============================
