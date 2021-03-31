@@ -43,6 +43,10 @@
   #define HAS_ENCODER_ACTION 1
 #endif
 
+#if HAS_STATUS_MESSAGE
+  #define START_OF_UTF8_CHAR(C) (((C) & 0xC0u) != 0x80U)
+#endif
+
 #if E_MANUAL > 1
   #define MULTI_MANUAL 1
 #endif
@@ -51,14 +55,14 @@
   #include "../module/printcounter.h"
 #endif
 
+#if BOTH(HAS_LCD_MENU, ADVANCED_PAUSE_FEATURE)
+  #include "../feature/pause.h"
+  #include "../module/motion.h" // for active_extruder
+#endif
+
+#define START_OF_UTF8_CHAR(C) (((C) & 0xC0u) != 0x80U)
+
 #if HAS_WIRED_LCD
-
-  #include "../MarlinCore.h"
-
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    #include "../feature/pause.h"
-    #include "../module/motion.h" // for active_extruder
-  #endif
 
   enum LCDViewAction : uint8_t {
     LCDVIEW_NONE,
@@ -87,17 +91,6 @@
     typedef void (*screenFunc_t)();
     typedef void (*menuAction_t)();
 
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      void lcd_pause_show_message(const PauseMessage message,
-                                  const PauseMode mode=PAUSE_MODE_SAME,
-                                  const uint8_t extruder=active_extruder);
-    #endif
-
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
-      void lcd_mesh_edit_setup(const float &initial);
-      float lcd_mesh_edit();
-    #endif
-
   #endif // HAS_LCD_MENU
 
 #endif // HAS_WIRED_LCD
@@ -118,9 +111,15 @@
 
 #if PREHEAT_COUNT
   typedef struct {
-    TERN_(HAS_HOTEND,     uint16_t hotend_temp);
-    TERN_(HAS_HEATED_BED, uint16_t bed_temp   );
-    TERN_(HAS_FAN,        uint16_t fan_speed  );
+    #if ENABLED(HAS_HOTEND)
+      celsius_t hotend_temp;
+    #endif
+    #if ENABLED(HAS_HEATED_BED)
+      celsius_t bed_temp;
+    #endif
+    #if ENABLED(HAS_FAN)
+      uint16_t fan_speed;
+    #endif
   } preheat_t;
 #endif
 
@@ -136,10 +135,14 @@
       static int8_t constexpr e_index = 0;
     #endif
     static millis_t start_time;
-    TERN_(IS_KINEMATIC, static xyze_pos_t all_axes_destination);
+    #if ENABLED(IS_KINEMATIC)
+      static xyze_pos_t all_axes_destination;
+    #endif
   public:
     static float menu_scale;
-    TERN_(IS_KINEMATIC, static float offset);
+    #if ENABLED(IS_KINEMATIC)
+      static float offset;
+    #endif
     template <typename T>
     void set_destination(const T& dest) {
       #if IS_KINEMATIC
@@ -177,6 +180,17 @@ public:
   MarlinUI() {
     TERN_(HAS_LCD_MENU, currentScreen = status_screen);
   }
+
+  #if HAS_MULTI_LANGUAGE
+    static uint8_t language;
+    static inline void set_language(const uint8_t lang) {
+      if (lang < NUM_LANGUAGES) {
+        language = lang;
+        return_to_status();
+        refresh();
+      }
+    }
+  #endif
 
   #if ENABLED(SOUND_MENU_ITEM)
     static bool buzzer_enabled; // Initialized by settings.load()
@@ -245,7 +259,7 @@ public:
         static inline uint32_t _calculated_remaining_time() {
           const duration_t elapsed = print_job_timer.duration();
           const progress_t progress = _get_progress();
-          return elapsed.value * (100 * (PROGRESS_SCALE) - progress) / progress;
+          return progress ? elapsed.value * (100 * (PROGRESS_SCALE) - progress) / progress : 0;
         }
         #if ENABLED(USE_M73_REMAINING_TIME)
           static uint32_t remaining_time;
@@ -278,7 +292,7 @@ public:
 
     static bool has_status();
     static void reset_status(const bool no_welcome=false);
-    static void set_status(const char* const message, const bool persist=false);
+    static void set_status(const char * const message, const bool persist=false);
     static void set_status_P(PGM_P const message, const int8_t level=0);
     static void status_printf_P(const uint8_t level, PGM_P const fmt, ...);
     static void set_alert_status_P(PGM_P const message);
@@ -286,7 +300,7 @@ public:
   #else
     static constexpr bool has_status() { return false; }
     static inline void reset_status(const bool=false) {}
-    static void set_status(const char* message, const bool=false);
+    static void set_status(const char *message, const bool=false);
     static void set_status_P(PGM_P message, const int8_t=0);
     static void status_printf_P(const uint8_t, PGM_P message, ...);
     static inline void set_alert_status_P(PGM_P const) {}
@@ -301,6 +315,7 @@ public:
     static void abort_print();
     static void pause_print();
     static void resume_print();
+    static void flow_fault();
 
     #if HAS_WIRED_LCD
 
@@ -485,6 +500,11 @@ public:
       static void ubl_plot(const uint8_t x_plot, const uint8_t y_plot);
     #endif
 
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
+      static void ubl_mesh_edit_start(const float &initial);
+      static float ubl_mesh_value();
+    #endif
+
     static void draw_select_screen_prompt(PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr);
 
   #elif HAS_WIRED_LCD
@@ -493,6 +513,13 @@ public:
     static constexpr bool on_status_screen() { return true; }
     FORCE_INLINE static void run_current_screen() { status_screen(); }
 
+  #endif
+
+  #if BOTH(HAS_LCD_MENU, ADVANCED_PAUSE_FEATURE)
+    static void pause_show_message(const PauseMessage message, const PauseMode mode=PAUSE_MODE_SAME, const uint8_t extruder=active_extruder);
+  #else
+    static inline void _pause_show_message() {}
+    #define pause_show_message(...) _pause_show_message()
   #endif
 
   //
