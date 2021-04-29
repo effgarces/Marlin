@@ -81,9 +81,8 @@ void LevelingMenu::onRedraw(draw_mode_t what) {
        .text(BLTOUCH_TITLE_POS, GET_TEXT_F(MSG_BLTOUCH))
     #endif
        .font(font_medium).colors(normal_btn)
-    #if EITHER(Z_STEPPER_AUTO_ALIGN,MECHANICAL_GANTRY_CALIBRATION)
+       .enabled(EITHER(Z_STEPPER_AUTO_ALIGN,MECHANICAL_GANTRY_CALIBRATION))
        .tag(2).button(LEVEL_AXIS_POS, GET_TEXT_F(MSG_LEVEL_X_AXIS))
-    #endif
        .tag(3).button(PROBE_BED_POS, GET_TEXT_F(MSG_PROBE_BED))
        .enabled(ENABLED(HAS_MESH))
        .tag(4).button(SHOW_MESH_POS, GET_TEXT_F(MSG_SHOW_MESH))
@@ -111,20 +110,17 @@ bool LevelingMenu::onTouchEnd(uint8_t tag) {
       #define BED_LEVELING_COMMANDS "G29"
     #endif
     #if ENABLED(AUTO_BED_LEVELING_UBL)
-      BedMeshScreen::startMeshProbe();
+      BedMeshViewScreen::doProbe();
     #else
       SpinnerDialogBox::enqueueAndWait_P(F(BED_LEVELING_COMMANDS));
     #endif
     break;
     #if ENABLED(AUTO_BED_LEVELING_UBL)
-    case 4: BedMeshScreen::showMesh(); break;
-    case 5: BedMeshScreen::showMeshEditor(); break;
+    case 4: BedMeshViewScreen::show(); break;
+    case 5: BedMeshEditScreen::show(); break;
     #endif
     #if ENABLED(G26_MESH_VALIDATION)
-    case 6:
-      GOTO_SCREEN(StatusScreen);
-      injectCommands_P(PSTR("M117 Printing Test Pattern\nG28 O\nG26 R"));
-      break;
+    case 6: BedMeshViewScreen::doMeshValidation(); break;
     #endif
     #if ENABLED(BLTOUCH)
     case 7: injectCommands_P(PSTR("M280 P0 S60")); break;

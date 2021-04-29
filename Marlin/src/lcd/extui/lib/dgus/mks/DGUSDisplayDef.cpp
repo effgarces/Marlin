@@ -44,8 +44,8 @@
 #endif
 
 uint16_t manualMoveStep = 1;
-float distanceFilament = 10;
-uint16_t FilamentSpeed = 25;
+uint16_t distanceFilament = 10;
+uint16_t filamentSpeed_mm_s = 25;
 float ZOffset_distance = 0.1;
 float mesh_adj_distance = 0.01;
 float Z_distance = 0.1;
@@ -72,12 +72,24 @@ void MKS_reset_settings() {
 }
 
 xyz_pos_t position_before_pause;
+constexpr feedRate_t park_speed_xy = TERN(NOZZLE_PARK_FEATURE, NOZZLE_PARK_XY_FEEDRATE, 100),
+                     park_speed_z  = TERN(NOZZLE_PARK_FEATURE, NOZZLE_PARK_Z_FEEDRATE,    5);
+
 void MKS_pause_print_move() {
   queue.exhaust();
   position_before_pause = current_position;
-  do_blocking_move_to(X_MIN_POS + mks_park_pos.x, Y_MIN_POS + mks_park_pos.y, current_position.z + mks_park_pos.z);
+  destination.z = _MIN(current_position.z + mks_park_pos.z, Z_MAX_POS);
+  prepare_internal_move_to_destination(park_speed_z);
+  destination.set(X_MIN_POS + mks_park_pos.x, Y_MIN_POS + mks_park_pos.y);
+  prepare_internal_move_to_destination(park_speed_xy);
 }
-void MKS_resume_print_move() { do_blocking_move_to(position_before_pause); }
+
+void MKS_resume_print_move() {
+  destination.set(position_before_pause.x, position_before_pause.y);
+  prepare_internal_move_to_destination(park_speed_xy);
+  destination.z = position_before_pause.z;
+  prepare_internal_move_to_destination(park_speed_z);
+}
 
 float z_offset_add = 0;
 
@@ -554,8 +566,8 @@ const struct DGUS_VP_Variable ListOfVP[] PROGMEM = {
     #if ENABLED(DGUS_FILAMENT_LOADUNLOAD)
       VPHELPER(VP_LOAD_Filament, nullptr, &ScreenHandler.MKS_FilamentLoad, nullptr),
       VPHELPER(VP_UNLOAD_Filament, nullptr, &ScreenHandler.MKS_FilamentUnLoad, nullptr),
-      VPHELPER(VP_Filament_distance, &distanceFilament, &ScreenHandler.GetManualFilament, ScreenHandler.DGUSLCD_SendFloatAsLongValueToDisplay<0>),
-      VPHELPER(VP_Filament_speed, &FilamentSpeed, &ScreenHandler.GetManualFilamentSpeed, ScreenHandler.DGUSLCD_SendWordValueToDisplay),
+      VPHELPER(VP_Filament_distance, &distanceFilament, &ScreenHandler.GetManualFilament, ScreenHandler.DGUSLCD_SendWordValueToDisplay),
+      VPHELPER(VP_Filament_speed, &filamentSpeed_mm_s, &ScreenHandler.GetManualFilamentSpeed, ScreenHandler.DGUSLCD_SendWordValueToDisplay),
     #endif
   #endif
 
@@ -569,7 +581,7 @@ const struct DGUS_VP_Variable ListOfVP[] PROGMEM = {
 
     #if ENABLED(DGUS_FILAMENT_LOADUNLOAD)
       VPHELPER(VP_Filament_distance, &distanceFilament, &ScreenHandler.GetManualFilament, ScreenHandler.DGUSLCD_SendFloatAsIntValueToDisplay<0>),
-      VPHELPER(VP_Filament_speed, &FilamentSpeed, &ScreenHandler.GetManualFilamentSpeed, ScreenHandler.DGUSLCD_SendWordValueToDisplay),
+      VPHELPER(VP_Filament_speed, &filamentSpeed_mm_s, &ScreenHandler.GetManualFilamentSpeed, ScreenHandler.DGUSLCD_SendWordValueToDisplay),
     #endif
 
     #if ENABLED(PIDTEMP)
@@ -733,8 +745,9 @@ const struct DGUS_VP_Variable ListOfVP[] PROGMEM = {
 
 
   // SDCard File listing
-  VPHELPER(VP_SD_FileSelected, nullptr, ScreenHandler.DGUSLCD_SD_FileSelected, nullptr),
+
   #if ENABLED(SDSUPPORT)
+    VPHELPER(VP_SD_FileSelected, nullptr, ScreenHandler.DGUSLCD_SD_FileSelected, nullptr),
     VPHELPER(VP_SD_ScrollEvent, nullptr, ScreenHandler.DGUSLCD_SD_ScrollFilelist, nullptr),
     VPHELPER(VP_SD_FileSelectConfirm, nullptr, ScreenHandler.DGUSLCD_SD_StartPrint, nullptr),
     VPHELPER_STR(VP_SD_FileName0, nullptr, VP_SD_FileName_LEN, nullptr, ScreenHandler.DGUSLCD_SD_SendFilename),
@@ -759,6 +772,8 @@ const struct DGUS_VP_Variable ListOfVP[] PROGMEM = {
       VPHELPER(VP_OFFSET_Y, &probe.offset.y, ScreenHandler.GetOffsetValue,ScreenHandler.DGUSLCD_SendFloatAsLongValueToDisplay<2>),
       VPHELPER(VP_OFFSET_Z, &probe.offset.z, ScreenHandler.GetOffsetValue,ScreenHandler.DGUSLCD_SendFloatAsLongValueToDisplay<2>),
     #endif
+  #else
+    VPHELPER(VP_SD_FileSelected, nullptr, ScreenHandler.PrintReturn, nullptr),
   #endif
 
   #if ENABLED(DGUS_UI_WAITING)

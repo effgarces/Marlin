@@ -172,17 +172,13 @@ void process_lcd_eb_command(const char *command) {
 
       sprintf_P(message_buffer,
         PSTR("{T0:%03i/%03i}{T1:000/000}{TP:%03i/%03i}{TQ:%03i}{TT:%s}"),
-        int(thermalManager.degHotend(0)), thermalManager.degTargetHotend(0),
+        thermalManager.wholeDegHotend(0), thermalManager.degTargetHotend(0),
         #if HAS_HEATED_BED
-          int(thermalManager.degBed()), thermalManager.degTargetBed(),
+          thermalManager.wholeDegBed(), thermalManager.degTargetBed(),
         #else
           0, 0,
         #endif
-        #if ENABLED(SDSUPPORT)
-          done_pct,
-        #else
-          0,
-        #endif
+        TERN(SDSUPPORT, done_pct, 0),
         elapsed_buffer
       );
       write_to_lcd(message_buffer);
@@ -307,9 +303,9 @@ void process_lcd_s_command(const char *command) {
       // temperature information
       char message_buffer[MAX_CURLY_COMMAND];
       sprintf_P(message_buffer, PSTR("{T0:%03i/%03i}{T1:000/000}{TP:%03i/%03i}"),
-        int(thermalManager.degHotend(0)), thermalManager.degTargetHotend(0),
+        thermalManager.wholeDegHotend(0), thermalManager.degTargetHotend(0),
         #if HAS_HEATED_BED
-          int(thermalManager.degBed()), thermalManager.degTargetBed()
+          thermalManager.wholeDegBed(), thermalManager.degTargetBed()
         #else
           0, 0
         #endif
@@ -523,12 +519,13 @@ namespace ExtUI {
   void onFactoryReset() {}
   void onStoreSettings(char*) {}
   void onLoadSettings(const char*) {}
+  void onPostprocessSettings() {}
   void onConfigurationStoreWritten(bool) {}
   void onConfigurationStoreRead(bool) {}
 
   #if HAS_MESH
     void onMeshLevelingStart() {}
-    void onMeshUpdate(const int8_t xpos, const int8_t ypos, const float &zval) {}
+    void onMeshUpdate(const int8_t xpos, const int8_t ypos, const_float_t zval) {}
     void onMeshUpdate(const int8_t xpos, const int8_t ypos, const ExtUI::probe_state_t state) {}
   #endif
 
