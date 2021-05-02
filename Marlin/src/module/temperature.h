@@ -233,6 +233,8 @@ struct HeaterWatch {
   inline bool elapsed(const millis_t &ms) { return next_ms && ELAPSED(ms, next_ms); }
   inline bool elapsed() { return elapsed(millis()); }
 
+  inline bool check(const celsius_t curr) { return curr >= target; }
+
   inline void restart(const celsius_t curr, const celsius_t tgt) {
     if (tgt) {
       const celsius_t newtarget = curr + INCREASE;
@@ -370,9 +372,11 @@ class Temperature {
     static inline bool hotEnoughToExtrude(const uint8_t e) { return !tooColdToExtrude(e); }
     static inline bool targetHotEnoughToExtrude(const uint8_t e) { return !targetTooColdToExtrude(e); }
 
-    #if ENABLED(SINGLENOZZLE_STANDBY_FAN)
-      static celsius_t singlenozzle_temp[EXTRUDERS];
-      #if HAS_FAN
+    #if EITHER(SINGLENOZZLE_STANDBY_TEMP, SINGLENOZZLE_STANDBY_FAN)
+      #if ENABLED(SINGLENOZZLE_STANDBY_TEMP)
+        static celsius_t singlenozzle_temp[EXTRUDERS];
+      #endif
+      #if ENABLED(SINGLENOZZLE_STANDBY_FAN)
         static uint8_t singlenozzle_fan_speed[EXTRUDERS];
       #endif
       static void singlenozzle_change(const uint8_t old_tool, const uint8_t new_tool);
