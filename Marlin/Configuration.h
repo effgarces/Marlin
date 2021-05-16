@@ -1212,7 +1212,7 @@
 #define XY_PROBE_FEEDRATE 4000
 
 // Feedrate (mm/min) for the first approach when double-probing (MULTIPLE_PROBING == 2)
-#define Z_PROBE_FEEDRATE_FAST (HOMING_FEEDRATE_Z / 2)
+#define Z_PROBE_FEEDRATE_FAST (80*60 / 2)
 
 // Feedrate (mm/min) for the "accurate" probe of each point
 #define Z_PROBE_FEEDRATE_SLOW (Z_PROBE_FEEDRATE_FAST / 12)
@@ -1309,7 +1309,7 @@
 //#define DELAY_BEFORE_PROBING 200  // (ms) To prevent vibrations from triggering piezo sensors
 
 // Require minimum nozzle and/or bed temperature for probing
-#define PREHEAT_BEFORE_PROBING
+//#define PREHEAT_BEFORE_PROBING
 #if ENABLED(PREHEAT_BEFORE_PROBING)
   //#define PROBING_NOZZLE_TEMP 120   // (°C) Only applies to E0 at this time
   #define PROBING_BED_TEMP     70
@@ -1549,7 +1549,7 @@
  * leveling immediately after G28.
  */
 #define RESTORE_LEVELING_AFTER_G28
-#define ENABLE_LEVELING_AFTER_G28
+//#define ENABLE_LEVELING_AFTER_G28
 
 /**
  * Auto-leveling needs preheating
@@ -1749,8 +1749,7 @@
 
 // Homing speeds (mm/min)
 // Delta only homes to Z
-//#define HOMING_FEEDRATE_MM_M { (50*60), (50*60), (30*60) }
-#define HOMING_FEEDRATE_Z  (100*60)
+#define HOMING_FEEDRATE_MM_M { (80*60), (80*60), (80*60) }
 
 // Validate that endstops are triggered on homing moves
 #define VALIDATE_HOMING_ENDSTOPS
