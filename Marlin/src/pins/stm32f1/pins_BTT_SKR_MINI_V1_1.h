@@ -47,7 +47,7 @@
 #define Y_MAX_PIN                           PA1
 #define Z_MIN_PIN                           PC0
 #define Z_MAX_PIN                           PC3
-
+#define FIL_RUNOUT_PIN                      PA2
 //
 // Steppers
 //
